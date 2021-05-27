@@ -1,0 +1,177 @@
+import pickle, requests, re, json, os, time
+from urllib.parse import quote
+from bs4 import BeautifulSoup
+from utils import cleanhtml
+
+
+class Exception_MessagesAPI(Exception):
+    '''
+    Warning:
+    Be carefull, this script may not
+    explain and figure out all Exceptions
+    '''
+
+    def __init__(self, message, errors):
+        super().__init__(message)
+        self.errors = f'MessagesAPIexception[{errors}]'
+
+
+class MessagesAPI():
+    '''
+    Warning:
+    Look carefull, selecting wrong authorization
+    (two_factor or non-two_factor) will collapse script.
+    when selecting this script will not
+    explain and figure out all Exceptions
+    '''
+
+    def __init__(self, login: str, password: str, cookies: dict, two_factor: bool, auth=True):
+        self.cookies_final = cookies
+        login = login
+        password = str(password.encode('ANSI')).replace('\\x', '%')[2:-1]
+        self.two_factor = two_factor
+        self.main_session = requests.Session()
+        response = self.main_session.get(f'https://vk.com/', timeout=5)
+
+        self.ip_h = re.findall(r'ip_h=(\S*)&lg', str(response.text))[0]
+        self.lg_h = re.findall(r'lg_h=(\S*)&r', str(response.text))[0]
+        if cookies != None:
+            if not hasattr(self, 'cookies_final'):
+                raise Exception_MessagesAPI('No cookies found. Auth first.', 'AuthError')
+
+            session = requests.Session()
+            for i in range(5):
+                try:
+                    response = session.get('https://vk.com/dev/{name}'.format(name="friends.getLists"), cookies=self.cookies_final,timeout=5)
+                    time.sleep(1)
+                    break
+                except Exception:
+                    response = None
+            if response == None:
+                raise Exception_MessagesAPI('Invalid method or not logined', 'Cannot_use_this_method')
+            hash_data = re.findall(r'data-hash="(\S*)"', response.text)
+            # print(response.text)
+            soup = BeautifulSoup(response.text, features="html.parser")
+            params = soup.findAll("div", {"class": "dev_const_param_name"})
+            params = [cleanhtml(str(i)) for i in params]
+            if hash_data == []:
+                raise Exception_MessagesAPI('Invalid method or not logined', 'Cannot_use_this_method')
+        elif auth:
+            if two_factor:
+                self.two_factor_auth(login,password)
+            else:
+                self.single_factor_auth(login,password)
+
+    def single_factor_auth(self,login,password):
+        self.main_session.post(f'https://login.vk.com/?act=login',
+                               data=f'act=login&role=al_frame&expire=&recaptcha=&captcha_sid=&captcha_key=&_origin=https%3A%2F%2Fvk.com' + \
+                                    f'&ip_h={self.ip_h}&lg_h={self.lg_h}&ul=&email={login}&pass={password}',
+                               allow_redirects=False, cookies=self.main_session.cookies.get_dict(), timeout=5)
+        self.q_hash = None
+        for i in self.main_session.cookies.get_dict():
+            if 'remixq_' in i:
+                self.q_hash = i.split('remixq_')[1]
+                break
+
+        if self.q_hash == None:
+            raise Exception_MessagesAPI('Invalid login data or wrong auth method', 'LoginError')
+
+        self.main_session.get(f'https://vk.com/login.php?act=slogin&to=&s=1&__q_hash={self.q_hash}',
+                              cookies=self.main_session.cookies.get_dict(), timeout=5)
+        self.main_session.get(f'https://vk.com/feed',
+                              cookies=self.main_session.cookies.get_dict(), timeout=5)
+
+        self.cookies_final = self.main_session.cookies.get_dict()
+
+    def two_factor_auth(self,login,password):
+        self.main_session.post(f'https://login.vk.com/?act=login',
+                               data=f"act=login&role=al_frame&expire=&recaptcha=&captcha_sid=&captcha_key=&_origin=https%3A%2F%2Fvk.com" + \
+                                    f"&ip_h={self.ip_h}&lg_h={self.lg_h}&ul=&email={login}&pass={password}",
+                               cookies=self.main_session.cookies.get_dict(), timeout=5)
+
+        self.q_hash = None
+        for i in self.main_session.cookies.get_dict():
+            if 'remixq_' in i:
+                self.q_hash = i.split('remixq_')[1]
+                break
+
+        self.main_session.get(f'https://vk.com/login.php?act=slogin&to=&s=1&__q_hash={self.q_hash}',
+                              cookies=self.main_session.cookies.get_dict(), timeout=5)
+        response = self.main_session.get(f'https://vk.com/login?act=authcheck',
+                                         cookies=self.main_session.cookies.get_dict(), timeout=5)
+
+        self.hash_url = re.findall(r"window.Authcheck.init\('(\S*)',", str(response.text))
+        print(response.text)
+        print(self.hash_url)
+        if self.hash_url == []:
+            raise Exception_MessagesAPI('Invalid login data or wrong auth method', 'LoginError')
+        self.hash_url = self.hash_url[0]
+
+        code = input('Enter verification code:  ')
+
+        response = self.main_session.post(f'https://vk.com/al_login.php',
+                                          data=f'act=a_authcheck_code&al=1&code={code}&hash={self.hash_url}&remember=1',
+                                          cookies=self.main_session.cookies.get_dict(), timeout=5)
+        print(response.text)
+        response_json = json.loads(response.text[4:])['payload']
+        if 'Неверный код' in response_json[1][0]:
+            raise Exception_MessagesAPI('Wrong verification code', 'VerificationError')
+
+        response = self.main_session.get(f'https://vk.com/login.php?act=slogin&to=&s=1&__q_hash={self.q_hash}&fast=1',
+                                         cookies=self.main_session.cookies.get_dict(), timeout=5)
+
+        self.main_session.get(f'https://vk.com/feed',
+                              cookies=self.main_session.cookies.get_dict(), timeout=5)
+
+        self.cookies_final = self.main_session.cookies.get_dict()
+
+    def method(self, name, **kwargs):
+        if not hasattr(self, 'cookies_final'):
+            raise Exception_MessagesAPI('No cookies found. Auth first.', 'AuthError')
+
+        session = requests.Session()
+        response = None
+        for i in range(5):
+            try:
+                response = session.get(f'https://vk.com/dev/{name}', cookies=self.cookies_final)
+                time.sleep(1)
+                break
+            except Exception:
+                response = None
+                continue
+        hash_data = re.findall(r'data-hash="(\S*)"', response.text)
+        # print(response.text)
+        soup = BeautifulSoup(response.text, features="html.parser")
+        params = soup.findAll("div", {"class": "dev_const_param_name"})
+        params = [cleanhtml(str(i)) for i in params]
+
+        if hash_data == []:
+            raise Exception_MessagesAPI('Invalid method or not logined', 'Cannot_use_this_method')
+        hash_data = hash_data[0]
+
+        payload, checker = '', 0
+        for param in params:
+            if param in kwargs:
+                checker += 1
+                payload += '&{}={}'.format('param_' + \
+                                           param, quote(
+                    str(kwargs[param]) if type(kwargs[param]) != bool else str(int(kwargs[param]))))
+
+        if checker != len(kwargs):
+            raise Exception_MessagesAPI('Some of the parametrs invalid', 'InvalidParameters')
+
+        response = session.post(f'https://vk.com/dev',
+                                data=f'act=a_run_method&al=1&hash={quote(hash_data)}&method={name}{payload}&param_v=5.103',
+                                cookies=self.cookies_final,timeout=5)
+        time.sleep(1)
+        response_json = json.loads(response.text[4:])['payload']
+
+        if 'error' in json.loads(response_json[1][0]).keys():
+            raise Exception_MessagesAPI(json.loads(response_json[1][0])['error']['error_msg'],
+                                        json.loads(response_json[1][0])['error']['error_code'])
+
+        return json.loads(response_json[1][0])['response']
+
+    def get_cookies(self):
+        return self.cookies_final
+

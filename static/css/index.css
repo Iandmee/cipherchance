@@ -1,0 +1,235 @@
+.u-section-1 {
+  background-image: linear-gradient(0deg, rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url("../images/cvb.jpg");
+  background-position: 50% 50%;
+}
+
+.u-section-1 .u-sheet-1 {
+  min-height: 1332px;
+}
+
+.u-section-1 .u-text-1 {
+  background-image: none;
+  font-size: 4.5rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin: 413px 234px 0 209px;
+}
+
+.u-section-1 .u-text-2 {
+  margin: 20px 234px 60px 209px;
+}
+
+@media (max-width: 1199px) {
+  .u-section-1 .u-sheet-1 {
+    min-height: 1098px;
+  }
+
+  .u-section-1 .u-text-1 {
+    width: 697px;
+    margin-top: 109px;
+  }
+
+  .u-section-1 .u-text-2 {
+    margin-right: 134px;
+    margin-left: 109px;
+  }
+}
+
+@media (max-width: 991px) {
+  .u-section-1 .u-sheet-1 {
+    min-height: 841px;
+  }
+
+  .u-section-1 .u-text-1 {
+    margin-right: 233px;
+    margin-left: 210px;
+  }
+
+  .u-section-1 .u-text-2 {
+    margin-right: 23px;
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .u-section-1 .u-sheet-1 {
+    min-height: 631px;
+  }
+
+  .u-section-1 .u-text-1 {
+    font-size: 3.625rem;
+    width: 540px;
+    margin-top: 125px;
+    margin-left: 300px;
+    margin-right: 300px;
+  }
+
+  .u-section-1 .u-text-2 {
+    margin-right: 0;
+  }
+}
+
+@media (max-width: 575px) {
+  .u-section-1 .u-sheet-1 {
+    min-height: 397px;
+  }
+
+  .u-section-1 .u-text-1 {
+    font-size: 2.25rem;
+    width: 340px;
+    margin-top: 157px;
+    margin-left: 400px;
+    margin-right: 400px;
+  }
+
+  .u-section-1 .u-text-2 {
+    margin-bottom: 0;
+  }
+}.u-section-2 {
+  min-height: 520px;
+}
+
+.u-section-2 .u-layout-wrap-1 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.u-section-2 .u-layout-cell-1 {
+  min-height: 520px;
+  background-image: none;
+}
+
+.u-section-2 .u-container-layout-1 {
+  padding: 133px 30px 30px;
+}
+
+.u-section-2 .u-text-1 {
+  font-size: 3.75rem;
+  font-family: "Archivo Black";
+  text-transform: none;
+  margin: 0 12px;
+}
+
+.u-section-2 .u-text-2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 20px 0 0;
+}
+
+.u-section-2 .u-btn-1 {
+  border-style: none;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.875rem;
+  letter-spacing: 1px;
+  background-image: none;
+  box-shadow: 2px 5px 0px 0 rgba(41,46,51,0.4);
+  margin: 35px auto 0;
+  padding: 18px 65px 19px;
+}
+
+.u-section-2 .u-layout-cell-2 {
+  min-height: 520px;
+  background-image: none;
+}
+
+.u-section-2 .u-container-layout-2 {
+  padding: 133px 30px 30px;
+}
+
+.u-section-2 .u-text-3 {
+  font-size: 3.75rem;
+  font-family: "Archivo Black";
+  text-transform: none;
+  margin: 0 12px;
+}
+
+.u-section-2 .u-text-4 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 20px 0 0;
+}
+
+.u-section-2 .u-btn-2 {
+  border-style: none;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.875rem;
+  letter-spacing: 1px;
+  background-image: none;
+  box-shadow: 2px 5px 0px 0 rgba(114,104,63,0.4);
+  margin: 35px auto 0;
+  padding: 18px 65px 19px;
+}
+
+@media (max-width: 1199px) {
+  .u-section-2 {
+    min-height: 429px;
+  }
+
+  .u-section-2 .u-layout-cell-1 {
+    min-height: 429px;
+  }
+
+  .u-section-2 .u-text-1 {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .u-section-2 .u-layout-cell-2 {
+    min-height: 429px;
+  }
+
+  .u-section-2 .u-text-3 {
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
+
+@media (max-width: 991px) {
+  .u-section-2 {
+    min-height: 100px;
+  }
+
+  .u-section-2 .u-layout-cell-1 {
+    min-height: 100px;
+  }
+
+  .u-section-2 .u-container-layout-1 {
+    padding-top: 30px;
+  }
+
+  .u-section-2 .u-layout-cell-2 {
+    min-height: 100px;
+  }
+
+  .u-section-2 .u-container-layout-2 {
+    padding-top: 30px;
+  }
+}
+
+@media (max-width: 767px) {
+  .u-section-2 {
+    min-height: 200px;
+  }
+
+  .u-section-2 .u-container-layout-1 {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .u-section-2 .u-container-layout-2 {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+}
+
+@media (max-width: 575px) {
+  .u-section-2 .u-text-1 {
+    font-size: 1.5rem;
+  }
+
+  .u-section-2 .u-text-3 {
+    font-size: 1.5rem;
+  }
+}
