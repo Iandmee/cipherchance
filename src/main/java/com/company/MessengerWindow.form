@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.company.MessengerWindow">
+  <grid id="27dc6" binding="panel" layout-manager="BorderLayout" hgap="0" vgap="0">
+    <constraints>
+      <xy x="26" y="20" width="1280" height="512"/>
+    </constraints>
+    <properties/>
+    <border type="none"/>
+    <children>
+      <scrollpane id="bebae" binding="dialogueListScroll">
+        <constraints border-constraint="West"/>
+        <properties>
+          <horizontalScrollBarPolicy value="31"/>
+          <minimumSize width="256" height="512"/>
+          <preferredSize width="256" height="512"/>
+        </properties>
+        <border type="none"/>
+        <children>
+          <component id="a0a51" class="javax.swing.JList" binding="dialoguesList">
+            <constraints/>
+            <properties>
+              <font size="24"/>
+              <minimumSize width="250" height="512"/>
+              <preferredSize width="250" height="512"/>
+              <selectionMode value="0"/>
+            </properties>
+          </component>
+        </children>
+      </scrollpane>
+      <grid id="26189" binding="dialogueArea" layout-manager="BorderLayout" hgap="0" vgap="0">
+        <constraints border-constraint="Center"/>
+        <properties>
+          <minimumSize width="300" height="512"/>
+          <preferredSize width="300" height="512"/>
+        </properties>
+        <border type="none"/>
+        <children>
+          <grid id="4571e" binding="sendArea" layout-manager="BorderLayout" hgap="0" vgap="0">
+            <constraints border-constraint="South"/>
+            <properties>
+              <minimumSize width="300" height="64"/>
+              <preferredSize width="300" height="64"/>
+            </properties>
+            <border type="none"/>
+            <children>
+              <component id="96e2c" class="javax.swing.JButton" binding="sendButton">
+                <constraints border-constraint="East"/>
+                <properties>
+                  <preferredSize width="128" height="64"/>
+                  <text value="Send"/>
+                </properties>
+              </component>
+              <component id="f23d5" class="javax.swing.JButton" binding="addFileButton">
+                <constraints border-constraint="West"/>
+                <properties>
+                  <text value="Select File"/>
+                </properties>
+              </component>
+              <scrollpane id="5aec6" binding="messageScroll">
+                <constraints border-constraint="Center"/>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <component id="7974f" class="javax.swing.JTextArea" binding="messageText">
+                    <constraints/>
+                    <properties/>
+                  </component>
+                </children>
+              </scrollpane>
+            </children>
+          </grid>
+          <scrollpane id="81dae" binding="messagesListScroll">
+            <constraints border-constraint="Center"/>
+            <properties>
+              <horizontalScrollBarPolicy value="31"/>
+              <preferredSize width="300" height="448"/>
+            </properties>
+            <border type="none"/>
+            <children>
+              <component id="d7194" class="javax.swing.JList" binding="messagesList">
+                <constraints/>
+                <properties>
+                  <enabled value="false"/>
+                </properties>
+              </component>
+            </children>
+          </scrollpane>
+        </children>
+      </grid>
+      <grid id="6a06" binding="cipherSettingsPanel" layout-manager="BorderLayout" hgap="0" vgap="0">
+        <constraints border-constraint="East"/>
+        <properties>
+          <enabled value="true"/>
+          <minimumSize width="100" height="512"/>
+          <preferredSize width="220" height="512"/>
+        </properties>
+        <border type="none"/>
+        <children>
+          <grid id="ed4a6" binding="handshakeSettings" layout-manager="GridBagLayout">
+            <constraints border-constraint="North"/>
+            <properties>
+              <preferredSize width="220" height="92"/>
+            </properties>
+            <border type="none"/>
+            <children>
+              <component id="8bfd" class="javax.swing.JLabel">
+                <constraints>
+                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                  <gridbag weightx="0.0" weighty="0.0"/>
+                </constraints>
+                <properties>
+                  <text value="Key Agreement Algorithm"/>
+                </properties>
+              </component>
+              <component id="f0850" class="javax.swing.JComboBox" binding="keyAgreementAlgorithm">
+                <constraints>
+                  <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+                  <gridbag weightx="0.0" weighty="0.0"/>
+                </constraints>
+                <properties>
+                  <model/>
+                </properties>
+              </component>
+              <component id="daddc" class="javax.swing.JLabel">
+                <constraints>
+                  <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                  <gridbag weightx="0.0" weighty="0.0"/>
+                </constraints>
+                <properties>
+                  <text value="Key Length"/>
+                </properties>
+              </component>
+              <component id="c976b" class="javax.swing.JComboBox" binding="agreementKeyLength">
+                <constraints>
+                  <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+                  <gridbag weightx="0.0" weighty="0.0"/>
+                </constraints>
+                <properties>
+                  <model/>
+                </properties>
+              </component>
+            </children>
+          </grid>
+          <grid id="b6ce7" binding="cipherSettings" layout-manager="GridBagLayout">
+            <constraints border-constraint="Center"/>
+            <properties>
+              <preferredSize width="200" height="184"/>
+            </properties>
+            <border type="none"/>
+            <children>
+              <component id="282e2" class="javax.swing.JLabel">
+                <constraints>
+                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+                  <gridbag weightx="0.0" weighty="0.0"/>
+                </constraints>
+                <properties>
+                  <text value="Cipher Algorithm"/>
+                </properties>
+              </component>
+              <component id="7237c" class="javax.swing.JComboBox" binding="cipherAlg">
+                <constraints>
+                  <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+                  <gridbag weightx="0.0" weighty="0.0"/>
+                </constraints>
+                <properties>
+                  <model/>
+                </properties>
+              </component>
+              <component id="2cedb" class="javax.swing.JLabel">
+                <constraints>
+                  <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+                  <gridbag weightx="0.0" weighty="0.0"/>
+                </constraints>
+                <properties>
+                  <labelFor value="bebae"/>
+                  <text value="Padding"/>
+                </properties>
+              </component>
+              <component id="a506d" class="javax.swing.JComboBox" binding="paddingType">
+                <constraints>
+                  <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+                  <gridbag weightx="0.0" weighty="0.0"/>
+                </constraints>
+                <properties>
+                  <model/>
+                </properties>
+              </component>
+              <component id="81f74" class="javax.swing.JLabel">
+                <constraints>
+                  <grid row="6" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+                  <gridbag weightx="0.0" weighty="0.0"/>
+                </constraints>
+                <properties>
+                  <text value="Cipher Key Length"/>
+                </properties>
+              </component>
+              <component id="635ba" class="javax.swing.JComboBox" binding="cipherKeyLength">
+                <constraints>
+                  <grid row="7" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+                  <gridbag weightx="0.0" weighty="0.0"/>
+                </constraints>
+                <properties>
+                  <model/>
+                </properties>
+              </component>
+              <component id="41bf4" class="javax.swing.JComboBox" binding="cipherMode">
+                <constraints>
+                  <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+                  <gridbag weightx="0.0" weighty="0.0"/>
+                </constraints>
+                <properties>
+                  <model/>
+                </properties>
+              </component>
+              <component id="f1f6a" class="javax.swing.JLabel">
+                <constraints>
+                  <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+                  <gridbag weightx="0.0" weighty="0.0"/>
+                </constraints>
+                <properties>
+                  <text value="Cipher Mode"/>
+                </properties>
+              </component>
+            </children>
+          </grid>
+          <component id="1be6c" class="javax.swing.JButton" binding="cipherButton">
+            <constraints border-constraint="South"/>
+            <properties>
+              <preferredSize width="162" height="60"/>
+              <text value="Something Went &#10;Wrong"/>
+            </properties>
+          </component>
+        </children>
+      </grid>
+    </children>
+  </grid>
+</form>
