@@ -11,11 +11,14 @@ public class Main {
     public static PrintStream out = System.out;
 
     public static void main(String[] args) throws Exception {
-        BetterLoginForm window1 = new BetterLoginForm();
-        MessengerWindow window2 = new MessengerWindow();
+        //BetterLoginForm window1 = new BetterLoginForm();
+        String cachePassword = JOptionPane.showInputDialog(null, "Введите пароль для доступа к кэшу");
+        ConnectMachine session = new ConnectMachine();
+        MessengerWindow window = new MessengerWindow();
+        window.init(session);
 
-        window1.setMethod(window2.getClass().getMethod("init", ConnectMachine.class), window2);
-        window1.init();
+        //window1.setMethod(window2.getClass().getMethod("init", ConnectMachine.class), window2);
+        //window1.init();
     }
 
     public static ImageIcon createIcon(String path) {
