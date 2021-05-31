@@ -39,10 +39,19 @@ public class ConnectMachine {
     }
 
     private void initUserForGroup() {
+        if (Main.cache.getToken(true) != null) {
+            try {
+                uActor = new UserActor(Main.cache.getId(true), Main.cache.getToken(true));
+                return;
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, "Invalid cache");
+            }
+        }
+
         String userGroupAccessCodeURI = "https://oauth.vk.com/authorize?";
         userGroupAccessCodeURI += "client_id=" + APP_ID;
         userGroupAccessCodeURI += "&redirect_uri=" + REDIRECT_URI;
-        userGroupAccessCodeURI += "&scope=" + ((1 << 1) + (1 << 18)); // friends and groups
+        userGroupAccessCodeURI += "&scope=" + ((1 << 1) + (1 << 18) + (1 << 16)); // friends and groups forever
 
         try {
             Desktop.getDesktop().browse(new URI(userGroupAccessCodeURI));
@@ -59,6 +68,7 @@ public class ConnectMachine {
                     .userAuthorizationCodeFlow(APP_ID, SECRET_APP_KEY, REDIRECT_URI, code)
                     .execute();
             uActor = new UserActor(userAuthResponse.getUserId(), userAuthResponse.getAccessToken());
+            Main.cache.setToken(uActor.getId(), uActor.getAccessToken(), true);
         } catch (Exception e) {
             System.out.println(e);
             System.exit(1);
@@ -66,6 +76,15 @@ public class ConnectMachine {
     }
 
     private void initGroup() {
+        if (Main.cache.getToken(false) != null) {
+            try {
+                gActor = new GroupActor(Main.cache.getId(false), Main.cache.getToken(false));
+                return;
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, "Invalid cache");
+            }
+        }
+
         GetResponse groupList = null;
         try {
             groupList = vk.groups()
@@ -102,7 +121,7 @@ public class ConnectMachine {
         groupAccessCodeURI += "client_id=" + APP_ID;
         groupAccessCodeURI += "&redirect_uri=" + REDIRECT_URI;
         groupAccessCodeURI += "&group_ids=" + appGroupId;
-        groupAccessCodeURI += "&scope=" + ((1 << 12)); // messages
+        groupAccessCodeURI += "&scope=" + ((1 << 12)); // messages forever
 
         try {
             Desktop.getDesktop().browse(new URI(groupAccessCodeURI));
@@ -119,6 +138,7 @@ public class ConnectMachine {
                     .groupAuthorizationCodeFlow(APP_ID, SECRET_APP_KEY, REDIRECT_URI, groupCode)
                     .execute();
             gActor = new GroupActor(appGroupId, groupAuthResponse.getAccessTokens().get(appGroupId));
+            Main.cache.setToken(appGroupId, gActor.getAccessToken(), false);
         } catch (Exception e) {
             System.out.println(e);
             System.out.println("Error while getting group access");

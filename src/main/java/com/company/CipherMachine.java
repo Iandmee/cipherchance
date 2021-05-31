@@ -44,6 +44,7 @@ public class CipherMachine {
 
     CipherMachine(String alg, String mode, String padding, String textKey) {
         // Used when have user's text key. Key length is maximum
+        // Default IV is used
         Security.addProvider(new BouncyCastleProvider());
         Security.setProperty("crypto.policy", "unlimited");
 
@@ -53,14 +54,12 @@ public class CipherMachine {
             decryptor = Cipher.getInstance(alg + "/" + mode + "/" + padding);
 
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(textKey.getBytes(StandardCharsets.UTF_8));
+            byte[] hash = digest.digest(textKey.getBytes());
             key = new SecretKeySpec(hash, alg);
 
-            byte[] iv = new byte[encryptor.getBlockSize()];
-            rnd.nextBytes(iv);
+            encryptor.init(Cipher.ENCRYPT_MODE, key);
+            decryptor.init(Cipher.DECRYPT_MODE, key);
 
-            encryptor.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(iv));
-            decryptor.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(iv));
         } catch (Exception e) {
             System.out.println(e);
             System.exit(1);
@@ -92,7 +91,6 @@ public class CipherMachine {
             return cipher.doFinal(input);
         } catch (Exception e) {
             System.out.println(e);
-            System.exit(1);
         }
         return null;
     }
