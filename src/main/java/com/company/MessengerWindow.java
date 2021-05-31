@@ -79,7 +79,6 @@ public class MessengerWindow extends JFrame {
                 haveDialogues[index].getRenderObject().setBorder(BorderFactory.createLineBorder(Color.BLACK));
             } else {
                 haveDialogues[index].getRenderObject().setBorder(BorderFactory.createEmptyBorder());
-
             }
             return haveDialogues[index].getRenderObject();
         }

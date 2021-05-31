@@ -11,10 +11,17 @@ import com.vk.api.sdk.objects.groups.Filter;
 import com.vk.api.sdk.objects.groups.responses.CreateResponse;
 import com.vk.api.sdk.objects.groups.responses.GetByIdLegacyResponse;
 import com.vk.api.sdk.objects.groups.responses.GetResponse;
+import com.vk.api.sdk.objects.messages.ConversationWithMessage;
+import com.vk.api.sdk.objects.messages.responses.GetConversationsResponse;
+import com.vk.api.sdk.objects.users.Fields;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.net.URI;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -110,6 +117,7 @@ public class ConnectMachine {
                         .create(uActor, getValidGroupName(uActor.getId()))
                         .execute();
                 appGroupId = newGroupData.getId();
+                vk.groups().edit(uActor, appGroupId).messages(true).execute();
             } catch (Exception e) {
                 System.out.println(e);
                 System.out.println("Failed to create a new group");
@@ -147,6 +155,9 @@ public class ConnectMachine {
     }
 
     private Integer getAppGroup(ArrayList<String> possibleGroups) {
+        for (String s : possibleGroups) {
+            System.out.println(s);
+        }
         String validName = getValidGroupName(uActor.getId());
         try {
             List<GetByIdLegacyResponse> getGroups = vk.groups()
@@ -178,12 +189,27 @@ public class ConnectMachine {
     }
 
     public Dialogue[] getDialogues() {
-        int have = 2;
-        Dialogue[] res = new Dialogue[have];
-        for (int i = 0; i < have; i++) {
-            res[i] = new Dialogue(i, this);
+        if (GROUP_MODE) {
+            GetConversationsResponse dialogues = null;
+            try {
+                dialogues = vk.messages()
+                        .getConversations(gActor)
+                        .execute();
+            } catch (Exception e) {
+                System.out.println("An error while getting dialogues");
+                System.exit(0);
+            }
+            Dialogue[] dialoguesList = new Dialogue[dialogues.getCount()];
+            int i = 0;
+            for (ConversationWithMessage currentDialogue : dialogues.getItems()) {
+                Integer peer = currentDialogue.getConversation().getPeer().getId();
+                System.out.println(peer);
+                dialoguesList[i] = new Dialogue(peer, this);
+                i++;
+            }
+            return dialoguesList;
         }
-        return res;
+        return new Dialogue[0];
     }
 
     public Message getMessage(int dialogueId, int messageId) {
@@ -207,11 +233,54 @@ public class ConnectMachine {
     }
 
     public String getNameByDialogueId(int dialogueId) {
-        return "User " + dialogueId;
+        try {
+            com.vk.api.sdk.objects.users.responses.GetResponse userData = (vk.users()
+                    .get(gActor)
+                    .userIds(Integer.toString(dialogueId))
+                    .fields(Fields.FIRST_NAME_ABL, Fields.LAST_NAME_ABL)
+                    .execute()).get(0);
+            return userData.getFirstName() + " " + userData.getLastName();
+        } catch (Exception e) {
+            System.out.println("Fucked while getting data about user in func getNameByDialogueId");
+        }
+        return null;
     }
 
-    public String getDialogueImagePath(int dialogueId) {
-        return "\\images\\dial" + dialogueId + ".png";
+    public String getDialogueImagePath(Integer dialogueId) {
+        if (GROUP_MODE) {
+            URI webLink = null;
+            try {
+                com.vk.api.sdk.objects.users.responses.GetResponse userData = (vk.users()
+                        .get(gActor)
+                        .userIds(dialogueId.toString())
+                        .fields(Fields.PHOTO_50)
+                        .execute()).get(0);
+                webLink = userData.getPhoto50();
+            } catch (Exception e) {
+                System.out.println("An error while getting peer photo");
+            }
+            BufferedImage img = null;
+            try {
+                img = ImageIO.read(webLink.toURL());
+            } catch (Exception e) {
+                System.out.println("An error while getting image from site " + webLink);
+            }
+            System.out.println(Main.pathPrefix + "images/dial" + dialogueId + ".png");
+            File file = new File(Main.pathPrefix + "images/dial" + dialogueId + ".png");
+            if (!file.exists()) {
+                try {
+                    file.createNewFile();
+                } catch (Exception e) {
+                    System.out.println("Fucked while creating image file");
+                }
+            }
+            try {
+                ImageIO.write(img, "png", file);
+            } catch (Exception e) {
+                System.out.println("Fucked while writing image in file");
+            }
+        }
+        return "images/dial" + dialogueId + ".png";
     }
 
     public void sendTextMessage(int dialogueId, String msg) {
