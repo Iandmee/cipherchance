@@ -33,37 +33,35 @@ public class Dialogue {
     }
 
     public Message[] getAllMessages() {
-        int lastId = session.getLastMessageId(dialogueId);
-        ArrayList<Message> res = new ArrayList<>();
-        while (lastId != -1) {
-            res.add(session.getMessage(dialogueId, lastId));
-            lastId = session.getPreviousMessageId(dialogueId, lastId);
-        }
-        Message[] finalResult = new Message[res.size()];
-        for (int i = res.size() - 1, x = 0; i >= 0; i--, x++) {
-            finalResult[x] = res.get(i);
-        }
-        return finalResult;
+        return session.getAllMessagesFromDialogue(dialogueId);
     }
 
     public void sendMessage(String msg) {
-        String sendString = null;
+        StringBuilder sendString = null;
 
         if (cryptoManagerId != -1) {
-            sendString = "$%$cipId=" + cryptoManagerId + "&message=";
-            sendString += new String(cryptoManagers.get(cryptoManagerId).encrypt(msg));
+            byte[] encryptedMsg = cryptoManagers.get(cryptoManagerId).encrypt(msg);
+            sendString = new StringBuilder("$%$ " + cryptoManagerId + " " + encryptedMsg.length + " ");
+            sendString.append("[");
+            for (int i = 0; i < encryptedMsg.length; i++) {
+                sendString.append(encryptedMsg[i]);
+                if (i + 1 != encryptedMsg.length) {
+                    sendString.append(" ");
+                }
+            }
+            sendString.append("]");
         } else {
-            sendString = msg;
+            sendString = new StringBuilder(msg);
         }
-        System.out.println("Sent message: " + sendString);
+        //System.out.println("Sent message: " + sendString);
 
-        session.sendTextMessage(dialogueId, sendString);
+        session.sendTextMessage(dialogueId, sendString.toString());
     }
 
     public void addNewCipher(String alg, String mode, String padding, int keyLength) {
         cryptoManagers.add(new CipherMachine(alg, mode, padding, keyLength));
         cryptoManagerId = cryptoManagers.size() - 1;
-        System.out.println(cryptoManagerId);
+        //System.out.println(cryptoManagerId);
     }
 
     public void abortCipher() {

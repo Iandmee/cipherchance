@@ -38,6 +38,8 @@ public class MessengerWindow extends JFrame {
     private Message[] currentMessages = null;
     private CipherParametersKeeper[] currentCipherStates = null;
 
+    Timer autoUpdate = null;
+
     private int currentDialogueIndex = -1;
 
     private class DialoguesSelectionListener implements ListSelectionListener {
@@ -118,7 +120,6 @@ public class MessengerWindow extends JFrame {
                 currentCipherStates[currentDialogueIndex].fixState();
             }
             currentCipherStates[currentDialogueIndex].setComboboxes();
-
         }
     }
 
@@ -152,6 +153,11 @@ public class MessengerWindow extends JFrame {
         }
 
         public void setComboboxes() {
+            if (isEnabled) {
+                cipherButton.setText("Start session");
+            } else {
+                cipherButton.setText("Abort");
+            }
             keyAgreementAlgorithm.setSelectedIndex(keyAgreementAlgIndex);
             agreementKeyLength.setSelectedIndex(keyLengthIndex);
             cipherAlg.setSelectedIndex(cipherAlgIndex);
@@ -165,11 +171,22 @@ public class MessengerWindow extends JFrame {
 
     public void init(ConnectMachine cnt) {
         session = cnt;
-        System.out.println(session);
+        //System.out.println(session);
         setVisible(true);
         setDialoguesList();
         initComboBoxes();
         initButtons();
+
+        new Thread(() -> {
+            try {
+                while (true) {
+                    Thread.sleep(400);
+                    updateChat();
+                }
+            } catch (Exception e) {
+                System.out.println("FUCK!");
+            }
+        }).start();
     }
 
     MessengerWindow() {
@@ -261,6 +278,14 @@ public class MessengerWindow extends JFrame {
         cipherKeyLength.addItem(new ComboBoxHolder("256", 256));
         cipherKeyLength.addItem(new ComboBoxHolder("192", 192));
         cipherKeyLength.addItem(new ComboBoxHolder("128", 128));
+    }
+
+    private void updateChat() {
+        if (currentDialogueIndex == -1) {
+            return;
+        }
+        currentMessages = haveDialogues[currentDialogueIndex].getAllMessages();
+        messagesList.setListData(currentMessages);
     }
 
     {

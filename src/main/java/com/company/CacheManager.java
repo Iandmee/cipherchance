@@ -33,7 +33,7 @@ public class CacheManager {
 
     private PrintWriter getFileWriter(String fileName) {
         File file = new File(System.getProperty("user.dir") + fileName);
-        System.out.println(file.getAbsolutePath());
+        //System.out.println(file.getAbsolutePath());
         try {
             file.createNewFile();
         } catch (Exception e) {

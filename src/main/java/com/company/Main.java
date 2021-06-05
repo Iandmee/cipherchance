@@ -23,7 +23,7 @@ public class Main {
     }
 
     public static ImageIcon createIcon(String path) {
-        System.out.println(Main.class.getResource(""));
+        //System.out.println(Main.class.getResource(""));
         URL imgURL = Main.class.getResource(path);
         if (imgURL != null) {
             return new ImageIcon(imgURL);

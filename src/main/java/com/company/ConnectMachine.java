@@ -7,12 +7,14 @@ import com.vk.api.sdk.client.actors.UserActor;
 import com.vk.api.sdk.httpclient.HttpTransportClient;
 import com.vk.api.sdk.objects.GroupAuthResponse;
 import com.vk.api.sdk.objects.UserAuthResponse;
+import com.vk.api.sdk.objects.enums.MessagesRev;
 import com.vk.api.sdk.objects.groups.Filter;
 import com.vk.api.sdk.objects.groups.responses.CreateResponse;
 import com.vk.api.sdk.objects.groups.responses.GetByIdLegacyResponse;
 import com.vk.api.sdk.objects.groups.responses.GetResponse;
 import com.vk.api.sdk.objects.messages.ConversationWithMessage;
 import com.vk.api.sdk.objects.messages.responses.GetConversationsResponse;
+import com.vk.api.sdk.objects.messages.responses.GetHistoryResponse;
 import com.vk.api.sdk.objects.users.Fields;
 
 import javax.imageio.ImageIO;
@@ -22,6 +24,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.net.URI;
 import java.net.URL;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,6 +32,7 @@ public class ConnectMachine {
     VkApiClient vk = null;
     GroupActor gActor = null;
     UserActor uActor = null;
+    SecureRandom rnd = null;
 
     final private int APP_ID = 7828855;
     final private boolean GROUP_MODE = true;
@@ -39,6 +43,7 @@ public class ConnectMachine {
     ConnectMachine() {
         TransportClient transportClient = HttpTransportClient.getInstance();
         vk = new VkApiClient(transportClient);
+        rnd = new SecureRandom();
         if (GROUP_MODE) {
             initUserForGroup();
             initGroup();
@@ -203,7 +208,7 @@ public class ConnectMachine {
             int i = 0;
             for (ConversationWithMessage currentDialogue : dialogues.getItems()) {
                 Integer peer = currentDialogue.getConversation().getPeer().getId();
-                System.out.println(peer);
+                //System.out.println(peer);
                 dialoguesList[i] = new Dialogue(peer, this);
                 i++;
             }
@@ -212,24 +217,25 @@ public class ConnectMachine {
         return new Dialogue[0];
     }
 
-    public Message getMessage(int dialogueId, int messageId) {
-        Message res = new Message("dialogue " + dialogueId + " and message number " + messageId, messageId % 2 == 0);
-        return res;
-    }
-
-    public int getPreviousMessageId(int dialogueId, int messageId) {
-        return messageId - 1;
-    }
-
-    public int getNextMessageId(int dialogueId, int messageId) {
-        if (messageId > 10) {
-            return -1;
+    public Message[] getAllMessagesFromDialogue(int peer) {
+        if (GROUP_MODE) {
+            ArrayList<Message> dialogueHistory = new ArrayList<>();
+            try {
+                GetHistoryResponse response = vk.messages()
+                        .getHistory(gActor)
+                        .count(200)
+                        .peerId(peer)
+                        .rev(MessagesRev.CHRONOLOGICAL).extended(true).execute();
+                for (com.vk.api.sdk.objects.messages.Message msg : response.getItems()) {
+                    dialogueHistory.add(new Message(msg.getText(), msg.getFromId().equals(gActor.getId())));
+                }
+            } catch (Exception e) {
+                System.out.println(e);
+                System.out.println("An error while getting dialogue history");
+            }
+            return dialogueHistory.toArray(new Message[0]);
         }
-        return messageId + 1;
-    }
-
-    public int getLastMessageId(int dialogueId) {
-        return dialogueId + 5;
+        return null;
     }
 
     public String getNameByDialogueId(int dialogueId) {
@@ -265,7 +271,7 @@ public class ConnectMachine {
             } catch (Exception e) {
                 System.out.println("An error while getting image from site " + webLink);
             }
-            System.out.println(Main.pathPrefix + "images/dial" + dialogueId + ".png");
+            //System.out.println(Main.pathPrefix + "images/dial" + dialogueId + ".png");
             File file = new File(Main.pathPrefix + "images/dial" + dialogueId + ".png");
             if (!file.exists()) {
                 try {
@@ -284,6 +290,17 @@ public class ConnectMachine {
     }
 
     public void sendTextMessage(int dialogueId, String msg) {
-
+        if (GROUP_MODE) {
+            try {
+                vk.messages()
+                        .send(gActor)
+                        .peerId(dialogueId)
+                        .message(msg)
+                        .randomId(rnd.nextInt())
+                        .execute();
+            } catch (Exception e) {
+                System.out.println("Failed to send a message");
+            }
+        }
     }
 }
