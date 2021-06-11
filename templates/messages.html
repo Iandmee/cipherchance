@@ -99,7 +99,7 @@
   <div class="d-flex flex-column align-items-stretch bg-white" style="width: 500px;">
       <header class="py-3 mb-4 border-bottom">
           <div class="container d-flex flex-wrap justify-content-center">
-              <a href="/login" class="d-flex align-items-center mb-3 mb-lg-0 me-lg-auto text-dark text-decoration-none">
+              <a href="/login_test" class="d-flex align-items-center mb-3 mb-lg-0 me-lg-auto text-dark text-decoration-none">
                   <svg class="bi me-2" width="30" height="22"><use xlink:href="#bootstrap"/></svg>
                   <span class="fs-4">Friends</span>
               </a>
@@ -116,7 +116,7 @@
                           <strong class="mb-1">{{ f['first_name'] }} ({{f['last_name']}})</strong>
                           {% if f['online']==1 %}
                               <small><font color="#008000">{{ 'Online' }}</font></small>
-         9                 {% else %}
+                          {% else %}
                                <small><font color="#b22222">{{ 'Offline' }}</font></small>
                           {% endif %}
                       </div>
@@ -127,6 +127,7 @@
               <p>No friends found.</p>
           {% endif %}
       </div>
+
       <script src="../static/js/bootstrap.bundle.min.js"></script>
 
       <script src="../static/js/sidebars.js"></script>
