@@ -1,7 +1,7 @@
 import pickle, requests, re, json, os, time
 from urllib.parse import quote
 from bs4 import BeautifulSoup
-from utils import cleanhtml
+from cipherme.utils import cleanhtml
 
 
 class Exception_MessagesAPI(Exception):

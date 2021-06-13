@@ -1,5 +1,5 @@
 # coding=utf-8
-from vk_connect import *
+from cipherme.vk_connect import *
 from flask import render_template
 
 def generate_html_messages(methods:MessagesAPI,friends:dict=None):

@@ -1,4 +1,4 @@
-from vk_messages import MessagesAPI
+from cipherme.vk_messages import MessagesAPI
 import os
 import json
 
