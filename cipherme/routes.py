@@ -86,7 +86,7 @@ def code():
        resp = make_response(generate_html_messages(methods, friends))
        temp = b64encode(pickle.dumps(methods))
        for i in range(1, 6):
-           resp.set_cookie('methods'+str(i), temp[(i-1)*len(temp)//5:i*len(temp)//5])
+           resp.set_cookie('methods'+str(i), temp[(i - 1) * len(temp) // 5: i * len(temp) // 5])
        return resp
     return render_template("Ooops.html")
 @app.route('/comingsoon')
@@ -95,41 +95,6 @@ def show_comingsoon():
     :return: comingsoon page
     '''
     return render_template('comingsoon.html')
-
-@app.route('/search_friends',methods=['GET'])
-def search():
-    '''
-    :return: message page with  friends have found
-    '''
-    try:
-        search = request.args.get('search')
-    except:
-        search = None
-    if request.cookies:
-        methods = check_cookie(request.cookies)
-        if methods == None:
-            return render_template('Ooops.html')
-        friends = get_friends(methods)
-        if friends == None:
-            return generate_html_messages(methods)
-        try:
-            friends = friends['items']
-        except Exception:
-            friends = None
-        if search == None:
-            return generate_html_messages(methods, friends)
-        selected_friends = []
-        for i in range(len(friends)):
-            temp = friends[i]['first_name']+friends[i]['last_name']
-            temp = temp.lower()
-            search = search.lower()
-            for j in range(len(temp)):
-                if search == temp[j:min(j+len(search), len(temp))]:
-                    selected_friends.append(friends[i])
-                    break
-        return generate_html_messages(methods, selected_friends)
-    else:
-        return render_template("Ooops.html")
 
 
 
@@ -169,13 +134,14 @@ def login_check():
     if request.method == 'GET':
         if request.cookies:
             methods = check_cookie(request.cookies)
-            if methods!=None:
+            if methods != None:
                 friends = get_friends(methods)
                 try:
                     friends = friends['items']
                 except:
                     friends = None
-                resp = make_response(generate_html_messages(methods, friends))
+                conversations = getConversations(methods)
+                resp = make_response(generate_html_messages(methods, friends, conversations))
                 resp.set_cookie("time", str(random.randint(1, 100000)))
                 return resp
         resp = make_response(render_template('login.html'))
@@ -209,11 +175,12 @@ def login_check():
             try:
                 friends = friends['items']
             except Exception:
-                friends=None
-            resp = make_response(generate_html_messages(methods,friends))
+                friends = None
+            conversations = getConversations(methods)
+            resp = make_response(generate_html_messages(methods, friends, conversations))
             temp = b64encode(pickle.dumps(methods)).decode()
-            for i in range(1,6):
-                resp.set_cookie("methods"+str(i), temp[(i-1)*len(temp)//5:i*len(temp)//5])
+            for i in range(1, 6):
+                resp.set_cookie("methods" + str(i), temp[(i - 1) * len(temp) // 5: i * len(temp) // 5])
             resp.set_cookie("time", str(random.randint(1, 100000)))
             return resp
         else:
@@ -225,5 +192,5 @@ def login_check():
             resp = make_response(render_template("code.html"))
             temp = b64encode(pickle.dumps(methods)).decode()
             for i in range(1, 6):
-                resp.set_cookie("methods"+str(i), temp[(i-1)*len(temp)//5:i*len(temp)//5])
+                resp.set_cookie("methods"+str(i), temp[(i - 1) * len(temp) // 5: i * len(temp) // 5])
             return resp

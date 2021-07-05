@@ -2,10 +2,10 @@
 from cipherme.vk_connect import *
 from flask import render_template
 
-def generate_html_messages(methods:MessagesAPI,friends:dict=None):
+def generate_html_messages(methods:MessagesAPI, friends:dict=None, conversations:dict=None):
     '''
     :param methods:
     :param friends: friends list which we need to insert to webpage
     :return: main html page after login
     '''
-    return render_template("messages.html",friends=friends)
+    return render_template("messages.html", friends=friends, conversations=conversations)
