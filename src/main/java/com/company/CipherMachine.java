@@ -7,6 +7,8 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.File;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
@@ -16,6 +18,16 @@ public class CipherMachine {
     private Cipher encryptor, decryptor;
     private final SecureRandom rnd;
     private SecretKey key;
+
+    public static String getSHA1Digest(byte[] data) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            return new BigInteger(digest.digest(data)).toString(16);
+        } catch (Exception e) {
+            System.out.println("Couldn't get sha-1 digest");
+            return null;
+        }
+    }
 
     CipherMachine(String alg, String mode, String padding, int keyBitLen) {
         // Used when we want to init new random cipher
@@ -113,5 +125,13 @@ public class CipherMachine {
 
     public SecretKey getKey() {
         return key;
+    }
+
+    public File encryptFile(File original) {
+        if (!original.exists()) {
+            System.out.println("File not found. Nothing to encrypt");
+            return null;
+        }
+        return null;
     }
 }

@@ -8,20 +8,18 @@ import javax.swing.text.StyleContext;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Arrays;
 import java.util.Locale;
 
 public class MessengerWindow extends JFrame {
     private JPanel panel;
-    private JList dialoguesList;
     private JPanel dialogueArea;
     private JPanel sendArea;
-    private JScrollPane dialogueListScroll;
     private JButton sendButton;
     private JButton addFileButton;
     private JScrollPane messageScroll;
     private JTextArea messageText;
     private JScrollPane messagesListScroll;
-    private JList messagesList;
     private JPanel cipherSettingsPanel;
     private JPanel handshakeSettings;
     private JComboBox keyAgreementAlgorithm;
@@ -32,13 +30,14 @@ public class MessengerWindow extends JFrame {
     private JComboBox cipherKeyLength;
     private JButton cipherButton;
     private JComboBox cipherMode;
+    private JPanel messagesPanel;
+    private JScrollPane dlScroll;
+    private JList chatList;
 
     private ConnectMachine session = null;
     private Dialogue[] haveDialogues = null;
     private Message[] currentMessages = null;
     private CipherParametersKeeper[] currentCipherStates = null;
-
-    Timer autoUpdate = null;
 
     private int currentDialogueIndex = -1;
 
@@ -52,23 +51,20 @@ public class MessengerWindow extends JFrame {
                 return;
             }
             currentDialogueIndex = ind;
+
+            messagesPanel.removeAll();
+            messagesPanel.repaint();
+            messagesPanel.revalidate();
             currentMessages = haveDialogues[ind].getAllMessages();
-            messagesList.setListData(currentMessages);
+            for (Message msg : currentMessages) {
+                messagesPanel.add(msg);
+            }
 
             if (currentDialogueIndex == -1) {
                 setComboBoxesEnabled(true);
             } else {
                 currentCipherStates[currentDialogueIndex].setComboboxes();
             }
-        }
-    }
-
-    private class MessagesCellRenderer implements ListCellRenderer {
-
-        @Override
-        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-            //int selectedIndex = (Integer) value;
-            return currentMessages[index];
         }
     }
 
@@ -168,10 +164,56 @@ public class MessengerWindow extends JFrame {
         }
     }
 
+    private class MessageLayout implements LayoutManager {
+
+        @Override
+        public void addLayoutComponent(String name, Component comp) {
+        }
+
+        @Override
+        public void removeLayoutComponent(Component comp) {
+        }
+
+        @Override
+        public Dimension preferredLayoutSize(Container parent) {
+            Dimension res = new Dimension();
+            Component[] have = parent.getComponents();
+            int msgWidth = parent.getWidth() / 2 - 5;
+            res.width = 512;
+            int height = 5;
+            for (int i = 0; i < have.length; i++) {
+                height += 1;
+                height += ((Message) have[i]).getMinimalHeight(msgWidth);
+            }
+            res.height = height;
+            return res;
+        }
+
+        @Override
+        public Dimension minimumLayoutSize(Container parent) {
+            return preferredLayoutSize(parent);
+        }
+
+        @Override
+        public void layoutContainer(Container parent) {
+            Component[] have = parent.getComponents();
+            int msgWidth = parent.getWidth() / 2 - 5;
+            int cntY = 1;
+            for (int i = 0; i < have.length; i++) {
+                if (((Message) have[i]).ours) {
+                    have[i].setBounds(2 + msgWidth, cntY, msgWidth, ((Message) have[i]).getMinimalHeight(msgWidth));
+                } else {
+                    have[i].setBounds(2, cntY, msgWidth, ((Message) have[i]).getMinimalHeight(msgWidth));
+                }
+                cntY += 1;
+                cntY += ((Message) have[i]).getMinimalHeight(msgWidth);
+            }
+        }
+    }
+
 
     public void init(ConnectMachine cnt) {
         session = cnt;
-        //System.out.println(session);
         setVisible(true);
         setDialoguesList();
         initComboBoxes();
@@ -195,12 +237,14 @@ public class MessengerWindow extends JFrame {
         setSize(900, 512);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-        dialoguesList.addListSelectionListener(new DialoguesSelectionListener());
-        messagesList.setCellRenderer(new MessagesCellRenderer());
-        dialoguesList.setCellRenderer(new DialogueCellRenderer());
+        chatList.addListSelectionListener(new DialoguesSelectionListener());
+        messagesPanel.setLayout(new MessageLayout());
+        chatList.setCellRenderer(new DialogueCellRenderer());
 
         sendButton.addActionListener(new SendButtonListener());
         cipherButton.addActionListener(new CipherButtonListener());
+
+        messagesListScroll.getVerticalScrollBar().setUnitIncrement(16);
     }
 
     private void initButtons() {
@@ -211,12 +255,12 @@ public class MessengerWindow extends JFrame {
         haveDialogues = session.getDialogues();
         JLabel[] names = new JLabel[haveDialogues.length];
         currentCipherStates = new CipherParametersKeeper[haveDialogues.length];
+        System.err.println(haveDialogues.length);
         for (int i = 0; i < haveDialogues.length; i++) {
             names[i] = haveDialogues[i].getRenderObject();
             currentCipherStates[i] = new CipherParametersKeeper();
         }
-        dialoguesList.setListData(names);
-
+        chatList.setListData(names);
     }
 
     private void initComboBoxes() {
@@ -284,8 +328,13 @@ public class MessengerWindow extends JFrame {
         if (currentDialogueIndex == -1) {
             return;
         }
-        currentMessages = haveDialogues[currentDialogueIndex].getAllMessages();
-        messagesList.setListData(currentMessages);
+        Message[] possiblyNew = haveDialogues[currentDialogueIndex].getAllMessages();
+        for (int i = currentMessages.length; i < possiblyNew.length; i++) {
+            messagesPanel.add(possiblyNew[i]);
+        }
+        messagesPanel.repaint();
+        messagesPanel.revalidate();
+        currentMessages = possiblyNew;
     }
 
     {
@@ -305,18 +354,6 @@ public class MessengerWindow extends JFrame {
     private void $$$setupUI$$$() {
         panel = new JPanel();
         panel.setLayout(new BorderLayout(0, 0));
-        dialogueListScroll = new JScrollPane();
-        dialogueListScroll.setHorizontalScrollBarPolicy(31);
-        dialogueListScroll.setMinimumSize(new Dimension(256, 512));
-        dialogueListScroll.setPreferredSize(new Dimension(256, 512));
-        panel.add(dialogueListScroll, BorderLayout.WEST);
-        dialoguesList = new JList();
-        Font dialoguesListFont = this.$$$getFont$$$(null, -1, 24, dialoguesList.getFont());
-        if (dialoguesListFont != null) dialoguesList.setFont(dialoguesListFont);
-        dialoguesList.setMinimumSize(new Dimension(250, 512));
-        dialoguesList.setPreferredSize(new Dimension(250, 512));
-        dialoguesList.setSelectionMode(0);
-        dialogueListScroll.setViewportView(dialoguesList);
         dialogueArea = new JPanel();
         dialogueArea.setLayout(new BorderLayout(0, 0));
         dialogueArea.setMinimumSize(new Dimension(300, 512));
@@ -340,11 +377,12 @@ public class MessengerWindow extends JFrame {
         messageScroll.setViewportView(messageText);
         messagesListScroll = new JScrollPane();
         messagesListScroll.setHorizontalScrollBarPolicy(31);
-        messagesListScroll.setPreferredSize(new Dimension(300, 448));
+        messagesListScroll.setMinimumSize(new Dimension(512, 5));
+        messagesListScroll.setPreferredSize(new Dimension(520, 448));
         dialogueArea.add(messagesListScroll, BorderLayout.CENTER);
-        messagesList = new JList();
-        messagesList.setEnabled(false);
-        messagesListScroll.setViewportView(messagesList);
+        messagesPanel = new JPanel();
+        messagesPanel.setLayout(new BorderLayout(0, 0));
+        messagesListScroll.setViewportView(messagesPanel);
         cipherSettingsPanel = new JPanel();
         cipherSettingsPanel.setLayout(new BorderLayout(0, 0));
         cipherSettingsPanel.setEnabled(true);
@@ -448,29 +486,11 @@ public class MessengerWindow extends JFrame {
         cipherButton.setPreferredSize(new Dimension(162, 60));
         cipherButton.setText("Something Went \nWrong");
         cipherSettingsPanel.add(cipherButton, BorderLayout.SOUTH);
-        label4.setLabelFor(dialogueListScroll);
-    }
-
-    /**
-     * @noinspection ALL
-     */
-    private Font $$$getFont$$$(String fontName, int style, int size, Font currentFont) {
-        if (currentFont == null) return null;
-        String resultName;
-        if (fontName == null) {
-            resultName = currentFont.getName();
-        } else {
-            Font testFont = new Font(fontName, Font.PLAIN, 10);
-            if (testFont.canDisplay('a') && testFont.canDisplay('1')) {
-                resultName = fontName;
-            } else {
-                resultName = currentFont.getName();
-            }
-        }
-        Font font = new Font(resultName, style >= 0 ? style : currentFont.getStyle(), size >= 0 ? size : currentFont.getSize());
-        boolean isMac = System.getProperty("os.name", "").toLowerCase(Locale.ENGLISH).startsWith("mac");
-        Font fontWithFallback = isMac ? new Font(font.getFamily(), font.getStyle(), font.getSize()) : new StyleContext().getFont(font.getFamily(), font.getStyle(), font.getSize());
-        return fontWithFallback instanceof FontUIResource ? fontWithFallback : new FontUIResource(fontWithFallback);
+        dlScroll = new JScrollPane();
+        dlScroll.setHorizontalScrollBarPolicy(31);
+        panel.add(dlScroll, BorderLayout.WEST);
+        chatList = new JList();
+        dlScroll.setViewportView(chatList);
     }
 
     /**

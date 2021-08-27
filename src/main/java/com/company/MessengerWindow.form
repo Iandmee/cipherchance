@@ -7,26 +7,6 @@
     <properties/>
     <border type="none"/>
     <children>
-      <scrollpane id="bebae" binding="dialogueListScroll">
-        <constraints border-constraint="West"/>
-        <properties>
-          <horizontalScrollBarPolicy value="31"/>
-          <minimumSize width="256" height="512"/>
-          <preferredSize width="256" height="512"/>
-        </properties>
-        <border type="none"/>
-        <children>
-          <component id="a0a51" class="javax.swing.JList" binding="dialoguesList">
-            <constraints/>
-            <properties>
-              <font size="24"/>
-              <minimumSize width="250" height="512"/>
-              <preferredSize width="250" height="512"/>
-              <selectionMode value="0"/>
-            </properties>
-          </component>
-        </children>
-      </scrollpane>
       <grid id="26189" binding="dialogueArea" layout-manager="BorderLayout" hgap="0" vgap="0">
         <constraints border-constraint="Center"/>
         <properties>
@@ -73,16 +53,17 @@
             <constraints border-constraint="Center"/>
             <properties>
               <horizontalScrollBarPolicy value="31"/>
-              <preferredSize width="300" height="448"/>
+              <minimumSize width="512" height="5"/>
+              <preferredSize width="520" height="448"/>
             </properties>
             <border type="none"/>
             <children>
-              <component id="d7194" class="javax.swing.JList" binding="messagesList">
+              <grid id="efcf4" binding="messagesPanel" layout-manager="BorderLayout" hgap="0" vgap="0">
                 <constraints/>
-                <properties>
-                  <enabled value="false"/>
-                </properties>
-              </component>
+                <properties/>
+                <border type="none"/>
+                <children/>
+              </grid>
             </children>
           </scrollpane>
         </children>
@@ -172,7 +153,6 @@
                   <gridbag weightx="0.0" weighty="0.0"/>
                 </constraints>
                 <properties>
-                  <labelFor value="bebae"/>
                   <text value="Padding"/>
                 </properties>
               </component>
@@ -232,6 +212,19 @@
           </component>
         </children>
       </grid>
+      <scrollpane id="82adb" binding="dlScroll">
+        <constraints border-constraint="West"/>
+        <properties>
+          <horizontalScrollBarPolicy value="31"/>
+        </properties>
+        <border type="none"/>
+        <children>
+          <component id="b3891" class="javax.swing.JList" binding="chatList">
+            <constraints/>
+            <properties/>
+          </component>
+        </children>
+      </scrollpane>
     </children>
   </grid>
 </form>

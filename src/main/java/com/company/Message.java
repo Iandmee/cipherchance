@@ -10,15 +10,20 @@ import java.net.URI;
 
 public class Message extends JTextArea {
     String txt;
+    public boolean ours;
+    public int id;
 
     public Message(String text, boolean ourMessage) {
         super();
         setText(text);
         txt = text;
         setEditable(false);
+        setWrapStyleWord(true);
         setLineWrap(true);
 
-        System.out.println(text);
+        ours = ourMessage;
+
+        //System.out.println(text);
     }
 
     public Message(URI link, String shortName, boolean ourMessage) {
@@ -53,5 +58,37 @@ public class Message extends JTextArea {
                 setText("<html><a href=''>" + txt + "</a></html>");
             }
         });
+    }
+
+    public int getMinimalHeight(int width) {
+        FontMetrics metric = getFontMetrics(getFont());
+        int result = 0;
+        StringBuilder curStr = new StringBuilder();
+        for (char c : txt.toCharArray()) {
+            if (c == '\n') {
+                result += getPixelHeightForLine(curStr.toString(), metric, width);
+                curStr.delete(0, curStr.length() - 1);
+            } else {
+                curStr.append(c);
+            }
+        }
+        if (curStr.length() != 0) {
+            result += getPixelHeightForLine(curStr.toString(), metric, width);
+        }
+        return result;
+    }
+
+    private int getPixelHeightForLine(String line, FontMetrics metric, int width) {
+        int curW = 0;
+        int curH = 1;
+        for (char c : line.toCharArray()) {
+            if (curW + metric.charWidth(c) > width) {
+                curW = metric.charWidth(c);
+                curH++;
+            } else {
+                curW += metric.charWidth(c);
+            }
+        }
+        return curH * metric.getHeight();
     }
 }

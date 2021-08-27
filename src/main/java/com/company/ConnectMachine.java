@@ -7,11 +7,13 @@ import com.vk.api.sdk.client.actors.UserActor;
 import com.vk.api.sdk.httpclient.HttpTransportClient;
 import com.vk.api.sdk.objects.GroupAuthResponse;
 import com.vk.api.sdk.objects.UserAuthResponse;
+import com.vk.api.sdk.objects.apps.responses.GetFriendsListResponse;
 import com.vk.api.sdk.objects.enums.MessagesRev;
 import com.vk.api.sdk.objects.groups.Filter;
 import com.vk.api.sdk.objects.groups.responses.CreateResponse;
 import com.vk.api.sdk.objects.groups.responses.GetByIdLegacyResponse;
 import com.vk.api.sdk.objects.groups.responses.GetResponse;
+import com.vk.api.sdk.objects.messages.ConversationPeerType;
 import com.vk.api.sdk.objects.messages.ConversationWithMessage;
 import com.vk.api.sdk.objects.messages.responses.GetConversationsResponse;
 import com.vk.api.sdk.objects.messages.responses.GetHistoryResponse;
@@ -26,6 +28,8 @@ import java.net.URI;
 import java.net.URL;
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class ConnectMachine {
@@ -34,10 +38,10 @@ public class ConnectMachine {
     UserActor uActor = null;
     SecureRandom rnd = null;
 
-    final private int APP_ID = 7828855;
-    final private boolean GROUP_MODE = true;
+    final private int APP_ID = 0;
+    final private boolean GROUP_MODE = false;
     final private String REDIRECT_URI = "https://oauth.vk.com/blank.html";
-    final private String SECRET_APP_KEY = "Mc9luHXjbnyxZkVCownO";
+    final private String SECRET_APP_KEY = "Придумайте сами";
 
 
     ConnectMachine() {
@@ -47,9 +51,12 @@ public class ConnectMachine {
         if (GROUP_MODE) {
             initUserForGroup();
             initGroup();
+        } else {
+            initUserImplicitFlow();
         }
     }
 
+    @Deprecated
     private void initUserForGroup() {
         if (Main.cache.getToken(true) != null) {
             try {
@@ -87,6 +94,7 @@ public class ConnectMachine {
         }
     }
 
+    @Deprecated
     private void initGroup() {
         if (Main.cache.getToken(false) != null) {
             try {
@@ -159,6 +167,40 @@ public class ConnectMachine {
         }
     }
 
+    private void initUserImplicitFlow() {
+        if (Main.cache.getToken(true) != null) {
+            try {
+                uActor = new UserActor(Main.cache.getId(true), Main.cache.getToken(true));
+                return;
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, "Invalid cache");
+            }
+        }
+
+        String implicitFlowURI = "https://oauth.vk.com/authorize?";
+        implicitFlowURI += "client_id=" + APP_ID;
+        implicitFlowURI += "&redirect_uri=" + REDIRECT_URI;
+        implicitFlowURI += "&display=page";
+        implicitFlowURI += "&response_type=token";
+        implicitFlowURI += "&scope=" + ((1 << 12) + (1 << 16)); // messages forever
+
+        try {
+            Desktop.getDesktop().browse(new URI(implicitFlowURI));
+        } catch (Exception e) {
+            System.out.println(e);
+            System.exit(1);
+        }
+
+        String link = JOptionPane.showInputDialog("Скопируйте адрес из браузера");
+
+        Integer id = parseImplicitFlowUserId(link);
+        String token = parseImplicitFlowUserToken(link);
+        System.out.println(token);
+
+        uActor = new UserActor(id, token);
+        Main.cache.setToken(uActor.getId(), uActor.getAccessToken(), true);
+    }
+
     private Integer getAppGroup(ArrayList<String> possibleGroups) {
         for (String s : possibleGroups) {
             System.out.println(s);
@@ -193,114 +235,136 @@ public class ConnectMachine {
         return link.substring(ind + 1);
     }
 
-    public Dialogue[] getDialogues() {
-        if (GROUP_MODE) {
-            GetConversationsResponse dialogues = null;
-            try {
-                dialogues = vk.messages()
-                        .getConversations(gActor)
-                        .execute();
-            } catch (Exception e) {
-                System.out.println("An error while getting dialogues");
-                System.exit(0);
-            }
-            Dialogue[] dialoguesList = new Dialogue[dialogues.getCount()];
-            int i = 0;
-            for (ConversationWithMessage currentDialogue : dialogues.getItems()) {
-                Integer peer = currentDialogue.getConversation().getPeer().getId();
-                //System.out.println(peer);
-                dialoguesList[i] = new Dialogue(peer, this);
-                i++;
-            }
-            return dialoguesList;
+    private Integer parseImplicitFlowUserId(String link) {
+        int pos = link.indexOf("user_id=");
+        pos += 8; // first id char
+        StringBuilder id = new StringBuilder();
+        while (pos < link.length() && link.charAt(pos) != '&') {
+            id.append(link.charAt(pos));
+            pos++;
         }
-        return new Dialogue[0];
+        return Integer.parseInt(id.toString());
+    }
+
+    private String parseImplicitFlowUserToken(String link) {
+        int pos = link.indexOf("access_token=");
+        pos += 13; // first id char
+        StringBuilder token = new StringBuilder();
+        while (pos < link.length() && link.charAt(pos) != '&') {
+            token.append(link.charAt(pos));
+            pos++;
+        }
+        return token.toString();
+    }
+
+    public Dialogue[] getDialogues() {
+        ArrayList<ConversationWithMessage> convs = new ArrayList<>();
+        List<com.vk.api.sdk.objects.users.responses.GetResponse> usersData = new ArrayList<>();
+        int offset = 0, allConversations;
+        try {
+            do {
+                GetConversationsResponse dialogues = vk.messages()
+                        .getConversations(uActor)
+                        .offset(offset)
+                        .count(200)
+                        .execute();
+
+                ArrayList<String> dialogueIds = new ArrayList<>();
+                //System.out.println(dialogues.getItems().size());
+                for (ConversationWithMessage d : dialogues.getItems()) {
+                    if (d.getConversation().getPeer().getType() == ConversationPeerType.USER) {
+                        convs.add(d);
+                        dialogueIds.add(d.getConversation().getPeer().getId().toString());
+                    }
+                    offset++;
+                }
+                allConversations = dialogues.getCount();
+
+                List<com.vk.api.sdk.objects.users.responses.GetResponse> usersInfo = vk.users()
+                        .get(uActor)
+                        .userIds(dialogueIds)
+                        .fields(Fields.FIRST_NAME_ABL, Fields.LAST_NAME_ABL, Fields.PHOTO_50)
+                        .execute();
+                for (com.vk.api.sdk.objects.users.responses.GetResponse resp : usersInfo) {
+                    usersData.add(resp);
+                }
+            } while (offset < allConversations);
+        } catch (Exception e) {
+            System.out.println(e);
+            System.out.println("An error while getting dialogues");
+            System.exit(1);
+        }
+
+        System.out.println(convs.size() + " " + usersData.size());
+
+        Dialogue[] dialoguesList = new Dialogue[convs.size()];
+        int i = 0;
+        for (ConversationWithMessage currentDialogue : convs) {
+            Integer peer = currentDialogue.getConversation().getPeer().getId();
+
+            String name = usersData.get(i).getFirstName() + " " + usersData.get(i).getLastName();
+
+            dialoguesList[i] = new Dialogue(peer, this, name, getDialogueImagePath(usersData.get(i).getPhoto50(), peer));
+            i++;
+        }
+        return dialoguesList;
     }
 
     public Message[] getAllMessagesFromDialogue(int peer) {
-        if (GROUP_MODE) {
-            ArrayList<Message> dialogueHistory = new ArrayList<>();
-            try {
-                GetHistoryResponse response = vk.messages()
-                        .getHistory(gActor)
+        ArrayList<Message> dialogueHistory = new ArrayList<>();
+        try {
+            GetHistoryResponse response = vk.messages()
+                        .getHistory(uActor)
                         .count(200)
                         .peerId(peer)
-                        .rev(MessagesRev.CHRONOLOGICAL).extended(true).execute();
-                for (com.vk.api.sdk.objects.messages.Message msg : response.getItems()) {
-                    dialogueHistory.add(new Message(msg.getText(), msg.getFromId().equals(gActor.getId())));
-                }
-            } catch (Exception e) {
-                System.out.println(e);
-                System.out.println("An error while getting dialogue history");
-            }
-            return dialogueHistory.toArray(new Message[0]);
-        }
-        return null;
-    }
+                        .rev(MessagesRev.REVERSE_CHRONOLOGICAL).extended(true).execute();
 
-    public String getNameByDialogueId(int dialogueId) {
-        try {
-            com.vk.api.sdk.objects.users.responses.GetResponse userData = (vk.users()
-                    .get(gActor)
-                    .userIds(Integer.toString(dialogueId))
-                    .fields(Fields.FIRST_NAME_ABL, Fields.LAST_NAME_ABL)
-                    .execute()).get(0);
-            return userData.getFirstName() + " " + userData.getLastName();
+            for (com.vk.api.sdk.objects.messages.Message msg : response.getItems()) {
+                dialogueHistory.add(new Message(msg.getText(), msg.getFromId().equals(uActor.getId())));
+            }
+            Collections.reverse(dialogueHistory);
         } catch (Exception e) {
-            System.out.println("Fucked while getting data about user in func getNameByDialogueId");
+            System.out.println(e);
+            System.out.println("An error while getting dialogue history");
         }
-        return null;
+        return dialogueHistory.toArray(new Message[0]);
     }
 
-    public String getDialogueImagePath(Integer dialogueId) {
-        if (GROUP_MODE) {
-            URI webLink = null;
+    public String getDialogueImagePath(URI webLink, int peer) {
+        File file = new File(Main.pathPrefix + "images/dial" + peer + ".png");
+        if (!file.exists()) {
             try {
-                com.vk.api.sdk.objects.users.responses.GetResponse userData = (vk.users()
-                        .get(gActor)
-                        .userIds(dialogueId.toString())
-                        .fields(Fields.PHOTO_50)
-                        .execute()).get(0);
-                webLink = userData.getPhoto50();
+                file.createNewFile();
             } catch (Exception e) {
-                System.out.println("An error while getting peer photo");
+                System.out.println("Fucked while creating image file");
             }
-            BufferedImage img = null;
-            try {
-                img = ImageIO.read(webLink.toURL());
-            } catch (Exception e) {
-                System.out.println("An error while getting image from site " + webLink);
-            }
-            //System.out.println(Main.pathPrefix + "images/dial" + dialogueId + ".png");
-            File file = new File(Main.pathPrefix + "images/dial" + dialogueId + ".png");
-            if (!file.exists()) {
-                try {
-                    file.createNewFile();
-                } catch (Exception e) {
-                    System.out.println("Fucked while creating image file");
-                }
-            }
-            try {
-                ImageIO.write(img, "png", file);
-            } catch (Exception e) {
-                System.out.println("Fucked while writing image in file");
-            }
+        } else {
+            return "images/dial" + peer + ".png";
         }
-        return "images/dial" + dialogueId + ".png";
+        BufferedImage img = null;
+        try {
+            img = ImageIO.read(webLink.toURL());
+        } catch (Exception e) {
+            System.out.println("An error while getting image from site " + webLink);
+        }
+        try {
+            ImageIO.write(img, "png", file);
+        } catch (Exception e) {
+            System.out.println("Fucked while writing image in file");
+        }
+        return "images/dial" + peer + ".png";
     }
 
     public void sendTextMessage(int dialogueId, String msg) {
-        if (GROUP_MODE) {
-            try {
-                vk.messages()
-                        .send(gActor)
-                        .peerId(dialogueId)
-                        .message(msg)
-                        .randomId(rnd.nextInt())
-                        .execute();
-            } catch (Exception e) {
-                System.out.println("Failed to send a message");
-            }
+        try {
+            vk.messages()
+                    .send(uActor)
+                    .peerId(dialogueId)
+                    .message(msg)
+                    .randomId(rnd.nextInt())
+                    .execute();
+        } catch (Exception e) {
+            System.out.println("Failed to send a message");
         }
     }
 }

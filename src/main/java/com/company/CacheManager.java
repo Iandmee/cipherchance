@@ -2,6 +2,7 @@ package com.company;
 
 import java.io.*;
 import java.nio.file.Path;
+import java.security.MessageDigest;
 import java.util.Scanner;
 
 public class CacheManager {
@@ -32,20 +33,25 @@ public class CacheManager {
     }
 
     private PrintWriter getFileWriter(String fileName) {
-        File file = new File(System.getProperty("user.dir") + fileName);
-        //System.out.println(file.getAbsolutePath());
-        try {
-            file.createNewFile();
-        } catch (Exception e) {
-            System.out.println(e);
-            System.out.println("An error occurred while creating a new file");
-            System.exit(1);
-        }
+        File file = getFile(fileName);
         try {
             return new PrintWriter(file);
         } catch (Exception e) {
             System.out.println(e);
             System.out.println("An error while creating file writer");
+            System.exit(1);
+        }
+        return null;
+    }
+
+    private File getFile(String fileName) {
+        File file = new File(System.getProperty("user.dir") + fileName);
+        try {
+            file.createNewFile();
+            return file;
+        } catch (Exception e) {
+            System.out.println(e);
+            System.out.println("An error occurred while creating a new file");
             System.exit(1);
         }
         return null;
@@ -67,6 +73,15 @@ public class CacheManager {
             arr[i] = in.nextByte();
         }
         return arr;
+    }
+
+    public File putDataInFile(byte[] data) {
+        String fileName = CipherMachine.getSHA1Digest(data);
+        PrintWriter out = getFileWriter("\\cache\\" + fileName);
+        for (byte b : data) {
+            out.print(b);
+        }
+        return getFile("\\cache\\" + fileName);
     }
 
     public void setToken(Integer id, String accessToken, boolean isUser) {

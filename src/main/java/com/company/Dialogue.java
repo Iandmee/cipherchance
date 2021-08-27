@@ -7,24 +7,19 @@ public class Dialogue {
     ConnectMachine session = null;
     ArrayList<CipherMachine> cryptoManagers = null;
     private int dialogueId, cryptoManagerId = -1;
-    private String name;
     public JLabel renderLabel;
     private ImageIcon imageIcon;
+    private int lastMessageId = -1;
 
 
-    public Dialogue(int dId, ConnectMachine curSession) {
+
+    public Dialogue(int dId, ConnectMachine curSession, String name, String iconPath) {
         dialogueId = dId;
         session = curSession;
-        name = session.getNameByDialogueId(dId);
         cryptoManagers = new ArrayList<>();
 
-        imageIcon = Main.createIcon(session.getDialogueImagePath(dialogueId));
+        imageIcon = Main.createIcon(iconPath);
         renderLabel = new JLabel(name, imageIcon, JLabel.LEFT);
-    }
-
-
-    public String getName() {
-        return name;
     }
 
     public JLabel getRenderObject() {
